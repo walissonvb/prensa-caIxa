@@ -7,7 +7,11 @@ export const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'home',
+    redirectTo: 'ativos',
     pathMatch: 'full',
+  },
+  {
+    path: 'ativos',
+    loadComponent: () => import('./ativos/ativos.page').then( m => m.AtivosPage)
   },
 ];
