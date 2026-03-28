@@ -1,0 +1,7 @@
+{
+  "name": "prensas-caixa",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
