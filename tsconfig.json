@@ -20,7 +20,6 @@
     "skipLibCheck": true,
     "useDefineForClassFields": false,
     "types": ["node"],
-    "ignoreDeprecations": "6.0"
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
