@@ -1,48 +1,63 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>informacao</ion-title>
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="backPage()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Informações do Molde</ion-title>
   </ion-toolbar>
 </ion-header>
-<ion-content>
 
-<ion-card>
-  <ion-card-header>
-    <ion-card-title>Molde {{ moldeId}}</ion-card-title>
-    <ion-card-subtitle>Card Subtitle</ion-card-subtitle>
-  </ion-card-header>
-  <ion-card-content>
-    <ion-list>
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img alt="Silhouette of mountains" src="https://ionicframework.com/docs/img/demos/thumbnail.svg" />
-        </ion-thumbnail>
-        <ion-label>Atuador</ion-label>
-      </ion-item>
+<ion-content class="ion-padding page-informacao">
 
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img alt="Silhouette of mountains" src="https://ionicframework.com/docs/img/demos/thumbnail.svg" />
-        </ion-thumbnail>
-        <ion-label>Mancais</ion-label>
-      </ion-item>
+  @for (item of prensaFiltrada; track $index) {
+    <ion-card class="molde-card">
+      <ion-card-header>
+        <ion-card-title>Molde {{ item.codigo }}</ion-card-title>
+        <ion-card-subtitle>Local: {{ item.local }}</ion-card-subtitle>
+      </ion-card-header>
 
-      <ion-item>
-        <ion-thumbnail slot="start">
-          <img alt="Silhouette of mountains" src="https://ionicframework.com/docs/img/demos/thumbnail.svg" />
-        </ion-thumbnail>
-        <ion-label>Valvulas</ion-label>
-      </ion-item>
+      <ion-card-content>
+        <ion-item class="molde-item">
+          <ion-label><strong>Atuador:</strong> {{ item.Atuador }}</ion-label>
+          <ion-button class="btn-ia" slot="end" fill="outline" (click)="consultarIA(item, 'Atuador', item.Atuador)">
+            IA
+          </ion-button>
+        </ion-item>
 
-      <ion-item lines="none">
-        <ion-thumbnail slot="start">
-          <img alt="Silhouette of mountains" src="https://ionicframework.com/docs/img/demos/thumbnail.svg" />
-        </ion-thumbnail>
-        <ion-label>Preventiva</ion-label>
-      </ion-item>
-    </ion-list>
-  </ion-card-content>
-</ion-card>
-<ion-footer>
-  <ion-button slot="end" (click)="backPage()">Voltar</ion-button>
-</ion-footer>
+        <ion-item class="molde-item">
+          <ion-label><strong>Mancal GLA:</strong> {{ item.MancalGLA }}</ion-label>
+          <ion-button class="btn-ia" slot="end" fill="outline" (click)="consultarIA(item, 'Mancal GLA', item.MancalGLA)">
+            IA
+          </ion-button>
+        </ion-item>
+
+        <ion-item class="molde-item">
+          <ion-label><strong>Válvulas:</strong> {{ item.Valvulas }}</ion-label>
+          <ion-button class="btn-ia" slot="end" fill="outline" (click)="consultarIA(item, 'Válvulas', item.Valvulas)">
+            IA
+          </ion-button>
+        </ion-item>
+
+        <!-- Pergunta livre -->
+        <ion-item lines="none" class="ion-margin-top">
+          <ion-input class="input-pergunta"
+            [(ngModel)]="perguntaLivre"
+            placeholder="Digite sua pergunta para a IA..."
+            clearInput>
+          </ion-input>
+        </ion-item>
+
+        <ion-button expand="block" color="primary"
+                    class="btn-perguntar"
+                    (click)="perguntarLivre(item)"
+                    [disabled]="!perguntaLivre.trim()">
+          <ion-icon name="sparkles"></ion-icon>
+          Perguntar à IA
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  }
+
 </ion-content>

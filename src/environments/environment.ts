@@ -4,6 +4,7 @@
 
 export const environment = {
   production: false,
+  geminiApiKey : "AIzaSyCCM2tgO0Yup6ZVXJTkkUjQqfON-BgXC0M",
   firebaseConfig : {
   apiKey: "AIzaSyD59nPl0NeX3lmQrDoOPiUnFXH5BSgJ53M",
   authDomain: "prensa-caixa.firebaseapp.com",

@@ -1,121 +1,168 @@
-import { Component, OnInit, inject, input } from '@angular/core';
+import { Component, OnInit, inject, DestroyRef, EnvironmentInjector, runInInjectionContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
+import { IaService } from '../ia';
 import {
   Firestore,
   collection,
-  addDoc,
-  collectionData,
-  updateDoc,
-  deleteDoc,
-  doc
+  collectionData
 } from '@angular/fire/firestore';
-
-import { IonInput, IonThumbnail, IonLabel, IonItem, IonList, IonCardContent, IonCardSubtitle, IonCardHeader, IonCardTitle, IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonFooter, IonButton, ModalController } from '@ionic/angular/standalone';
-import { AtivosPage } from '../ativos/ativos.page';
+import {
+  LoadingController,
+  AlertController,
+  ModalController,
+  IonLabel, IonItem,
+  IonCardContent, IonCardSubtitle, IonCardHeader,
+  IonCardTitle, IonContent, IonHeader, IonTitle,
+  IonToolbar, IonCard, IonButton,
+  IonIcon, IonButtons
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { sparkles, construct, arrowBack, informationCircle } from 'ionicons/icons';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface Molde {
   id?: string;
   Atuador: string;
   MancalGLA: string;
-  MancalGLC: string;
-  MancalDBLA: string;
-  MancalDBLC: string;
-  MancalCLA1: string;
-  MancalCLA2: string;
-  MancalCLC1: string;
-  MancalCLC2: string; // ✔ corrigido nome
-  Estrutura: string;
-  Freio: string;
   Valvulas: string;
   local: string;
   codigo: string;
-  userId?: string;
 }
 
 @Component({
   selector: 'app-informacao',
   templateUrl: './informacao.page.html',
-  styleUrls: ['./informacao.page.scss'],
   standalone: true,
   imports: [
-    IonThumbnail,
-    IonLabel,
-    IonItem,
-    IonList,
-    IonCardContent,
-    IonCardSubtitle,
-    IonCardHeader,
-    IonCardTitle,
-    IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
-    IonCard,
-    CommonModule,
-    FormsModule,
-    IonFooter,
-    IonButton
-]
+    CommonModule, FormsModule,
+    IonLabel, IonItem,
+    IonCardContent, IonCardSubtitle, IonCardHeader,
+    IonCardTitle, IonContent, IonHeader, IonTitle,
+    IonToolbar, IonCard, IonButton,
+    IonIcon, IonButtons
+  ]
 })
 export class InformacaoPage implements OnInit {
-  private firestore = inject(Firestore);
-  moldeId!: number;
-  prensa: Molde[] = [];
-  prensaFiltrada: Molde[] = [];
-  termoPesquisa: string = '';
-  mostrarCadastro = false;
-  dados: Partial<Molde> = {};
 
-  constructor(private modalCtrl: ModalController
-) {
-    console.log('Firestore OK');
+  private firestore = inject(Firestore);
+  private aiService = inject(IaService);
+  private loadingCtrl = inject(LoadingController);
+  private alertCtrl = inject(AlertController);
+  private modalCtrl = inject(ModalController);
+  private destroyRef = inject(DestroyRef);
+  private environmentInjector = inject(EnvironmentInjector);
+
+  prensaFiltrada: Molde[] = [];
+  perguntaLivre: string = ''; // propriedade adicionada
+
+  constructor() {
+    addIcons({ sparkles, construct, arrowBack, informationCircle });
   }
 
   ngOnInit() {
-    const ref = collection(this.firestore, 'prensa');
 
-    collectionData(ref, { idField: 'id' }).subscribe((data) => {
-      this.prensa = data as Molde[];
-      this.prensaFiltrada = [...this.prensa];
+ this.aiService.perguntar('Teste rápido da IA')
+    .then(res => {
+      console.log('Resposta teste:', res);
+      this.exibirResposta('Teste IA', res);
+    })
+    .catch(err => console.error('Erro teste:', err));
+
+
+    runInInjectionContext(this.environmentInjector, () => {
+      const ref = collection(this.firestore, 'prensa');
+
+      collectionData(ref, { idField: 'id' })
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (data) => {
+            this.prensaFiltrada = data as Molde[];
+          },
+          error: (err) => {
+            console.error('Erro ao carregar prensas do Firebase:', err);
+          }
+        });
     });
   }
 
-  // 🔍 filtro simples
-  filtrar() {
-    const termo = this.termoPesquisa.toLowerCase();
-
-    this.prensaFiltrada = this.prensa.filter(p =>
-      p.codigo?.toLowerCase().includes(termo) ||
-      p.local?.toLowerCase().includes(termo)
-    );
+  trackById(index: number, item: Molde): string {
+    return item.id || item.codigo;
   }
 
-  // ➕ adicionar
-  async adicionar() {
-    const ref = collection(this.firestore, 'prensa');
-    await addDoc(ref, this.dados);
+  async consultarIA(item: Molde, componente: string, valor: string) {
+    const loading = await this.loadingCtrl.create({
+      message: `IA Analisando ${componente}...`,
+      spinner: 'dots'
+    });
+    await loading.present();
 
-    this.dados = {};
-    this.mostrarCadastro = false;
+    const contexto = {
+      nome: `Molde ${item.codigo}`,
+      especificacoes: `Componente: ${componente}. Status Atual: ${valor}. Local: ${item.local}`,
+      ultimo_reparo: "Verificar log do sistema"
+    };
+
+    const promptUser = `Como realizar a manutenção ou diagnóstico do ${componente} que apresenta o estado: ${valor}?`;
+
+    try {
+      const resposta = await this.aiService.perguntarManutencao(contexto, promptUser);
+      await loading.dismiss();
+      this.exibirResposta(componente, resposta);
+    } catch (e: any) {
+      await loading.dismiss();
+      console.error('Erro na IA:', e);
+
+      const errorAlert = await this.alertCtrl.create({
+        header: 'Erro na IA',
+        message: e.message || 'Não foi possível consultar a inteligência artificial. Verifique sua chave da API.',
+        buttons: ['OK']
+      });
+      await errorAlert.present();
+    }
   }
 
-  // ✏️ atualizar
-  async atualizar(item: Molde) {
-    if (!item.id) return;
+  async perguntarLivre(item: Molde) {
+    if (!this.perguntaLivre.trim()) return;
 
-    const refDoc = doc(this.firestore, `prensa/${item.id}`);
-    await updateDoc(refDoc, { ...item });
+    const loading = await this.loadingCtrl.create({
+      message: 'IA analisando pergunta livre...',
+      spinner: 'dots'
+    });
+    await loading.present();
+
+    try {
+      const resposta = await this.aiService.perguntarManutencao(
+        { nome: `Molde ${item.codigo}`, especificacoes: `Local: ${item.local}` },
+        this.perguntaLivre
+      );
+      await loading.dismiss();
+      this.exibirResposta('Pergunta Livre', resposta);
+      this.perguntaLivre = ''; // limpa o campo após enviar
+    } catch (e: any) {
+      await loading.dismiss();
+      console.error('Erro na IA:', e);
+      const errorAlert = await this.alertCtrl.create({
+        header: 'Erro na IA',
+        message: e.message || 'Não foi possível consultar a IA.',
+        buttons: ['OK']
+      });
+      await errorAlert.present();
+    }
   }
 
-  // ❌ deletar
-  async deletar(id: string) {
-    const refDoc = doc(this.firestore, `prensa/${id}`);
-    await deleteDoc(refDoc);
+  async exibirResposta(titulo: string, texto: string) {
+    const alert = await this.alertCtrl.create({
+      header: `Diagnóstico IA: ${titulo}`,
+      message: texto,
+      cssClass: 'ai-alert',
+      buttons: ['Entendido']
+    });
+    await alert.present();
   }
-async backPage(){
-  const model = await this.modalCtrl.create({ component: AtivosPage });
-  await model.present()
-}
+
+  async backPage() {
+    await this.modalCtrl.dismiss();
+  }
+
 }

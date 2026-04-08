@@ -1,0 +1,83 @@
+/* Fundo geral */
+.page-informacao {
+  ion-content {
+    --background: #f4f6f9;
+  }
+}
+
+/* Card dos moldes */
+.molde-card {
+  margin: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease-in-out;
+
+  &:hover {
+    transform: translateY(-3px);
+  }
+
+  ion-card-header {
+    background: #e9eef5;
+    border-bottom: 1px solid #d0d7de;
+    border-radius: 12px 12px 0 0;
+  }
+
+  ion-card-title {
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  ion-card-subtitle {
+    font-size: 0.9rem;
+    color: #555;
+  }
+}
+
+/* Itens internos */
+.molde-item {
+  --background: transparent;
+  --border-color: #ddd;
+
+  ion-label strong {
+    color: #333;
+  }
+}
+
+/* Botões IA */
+.btn-ia {
+  --border-radius: 8px;
+  --border-color: #0077cc;
+  --color: #0077cc;
+
+  &:hover {
+    --background: #0077cc;
+    --color: #fff;
+  }
+}
+
+/* Botão principal Perguntar à IA */
+.btn-perguntar {
+  margin-top: 12px;
+  --border-radius: 8px;
+  font-weight: 500;
+}
+
+/* Input de pergunta livre */
+.input-pergunta {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+}
+
+/* Alert da IA */
+.ai-alert .alert-head {
+  background: #0077cc;
+  color: #fff;
+}
+
+.ai-alert .alert-message {
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
