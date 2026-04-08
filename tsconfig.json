@@ -1,8 +1,6 @@
-/* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
@@ -15,16 +13,14 @@
     "declaration": false,
     "experimentalDecorators": true,
     "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true,
     "importHelpers": true,
     "target": "es2022",
-    "module": "ESNext",
-    "lib": ["es2022", "dom"],
+    "module": "es2020",
+    "lib": ["es2018", "dom"],
     "skipLibCheck": true,
-     "paths": {
-      "@google/generative-ai": ["node_modules/@google/generative-ai"]
-     },
-    "useDefineForClassFields": false
+    "useDefineForClassFields": false,
+    "types": ["node"],
+    "ignoreDeprecations": "6.0"
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
